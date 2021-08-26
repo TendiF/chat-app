@@ -1,8 +1,11 @@
+import { useRouter } from 'next/router'
 import Layout from "../components/Layout"
 import Input from "../components/Input"
 import Button from "../components/Button"
 
-const Chat = () => {
+const Index = () => {
+  const router = useRouter()
+
   return <Layout>
     <div
       style={{
@@ -27,9 +30,13 @@ const Chat = () => {
         <Input placeholder="Username" style={{ marginBottom: 15 }} />
         <Input placeholder="RoomID" />
       </div>
-      <Button>JOIN</Button>
+      <Button onClick={() => {
+        router.push("/chat")
+      }}>
+        JOIN
+      </Button>
     </div>
   </Layout>
 }
 
-export default Chat
+export default Index
