@@ -5,7 +5,7 @@ import Input from "../components/Input"
 
 const ChatContainer = ({ from, children }) => {
   let style = null
-
+  let triangleStyle = null
   if (from === "me") {
     style = {
       alignSelf: "flex-end",
@@ -13,24 +13,43 @@ const ChatContainer = ({ from, children }) => {
       padding: 15,
       background: "#5DB075",
       borderRadius: 12,
-      marginBottom: 15
+    }
+    triangleStyle = {
+      alignSelf: "flex-end",
+      width: 0,
+      height: 0,
+      borderTop: '20px solid #5DB075',
+      borderLeft: '20px solid transparent',
+      marginTop: -10,
+      marginBottom: 12
     }
   } else {
     style = {
       padding: 15,
       borderRadius: 12,
       background: "#f6f6f6",
-      border: "1px solid #e6e6e6",
       alignSelf: "flex-start",
-      marginBottom: 15
-
     }
+
+    triangleStyle = {
+      width: 0,
+      height: 0,
+      borderTop: '20px solid #f6f6f6',
+      borderRight: '20px solid transparent',
+      marginTop: -8,
+      marginBottom: 12
+    }
+
   }
 
   return <>
     {from !== "me" && <div style={{ fontSize: 14 }}>username</div>}
     <div style={style}>
       {children}
+    </div>
+    <div
+      style={triangleStyle}
+    >
     </div>
   </>
 
@@ -56,7 +75,7 @@ const Chat = () => {
         }}
       >
         <Link href="/">
-          <span style={{ color: "#5DB075" }} >Exit</span>
+          <span style={{ color: "#5DB075", cursor: "pointer" }} >Exit</span>
         </Link>
         <div style={{ alignSelf: "center", position: "absolute" }}>ROOMID</div>
       </div>
@@ -74,7 +93,23 @@ const Chat = () => {
         <ChatContainer from="me">Hai</ChatContainer>
         <ChatContainer>Hai</ChatContainer>
       </div>
-      <Input style={{ marginBottom: "10px" }} placeholder="Message here..." />
+      <Input style={{ marginBottom: "10px", display: "flex" }} placeholder="Message here..." >
+        <div
+          style={{
+            color: "white",
+            background: "#5DB075",
+            borderRadius: "50px",
+            width: 30,
+            height: 30,
+            fontSize: 18,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}
+        >
+          &#8593;
+        </div>
+      </Input>
     </div>
   </Layout>
 }
