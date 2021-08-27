@@ -1,7 +1,8 @@
+import { useContext, useEffect } from 'react'
 import Link from 'next/link'
 import Layout from "../components/Layout"
 import Input from "../components/Input"
-
+import { AppContext } from "../context/AppContext"
 
 const ChatContainer = ({ from, children }) => {
   let style = null
@@ -52,9 +53,17 @@ const ChatContainer = ({ from, children }) => {
     >
     </div>
   </>
-
 }
+
 const Chat = () => {
+  let {axios} = useContext(AppContext)
+
+  useEffect(() => {
+    axios.get("/").then(res => {
+      console.log("res",res)
+    })
+  }, [axios])
+
   return <Layout>
     <div
       style={{
