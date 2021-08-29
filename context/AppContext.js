@@ -1,7 +1,5 @@
-import React from 'react'
+import React, { useState } from 'react'
 import axios from 'axios'
-import { io } from 'socket.io-client'
-
 
 const AppContext = React.createContext()
 
@@ -10,13 +8,15 @@ const axiosInstance = axios.create({
   timeout: 1000,
 });
 
-let socket = io("http://localhost:8090")
 
 const AppProvider = ({ children }) => {
+  const [socket, setSocket] = useState(null);
+
   return (
     <AppContext.Provider value={{
       axios: axiosInstance,
-      socket
+      socket,
+      setSocket
      }}>
       {children}
     </AppContext.Provider>

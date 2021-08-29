@@ -1,14 +1,20 @@
-import { useState } from 'react'
-
+import { useState, useContext } from 'react'
 import { useRouter } from 'next/router'
+import { io } from 'socket.io-client'
+
 import Layout from "../components/Layout"
 import Input from "../components/Input"
 import Button from "../components/Button"
+import { AppContext } from "../context/AppContext"
+
+
 
 const Index = () => {
   const router = useRouter()
   const [username, setUsername] = useState("");
   const [room, setRoom] = useState("");
+  let { setSocket } = useContext(AppContext)
+
 
   return <Layout>
     <div
@@ -35,13 +41,30 @@ const Index = () => {
         <Input onInput={e => setRoom(e.target.value)} placeholder="RoomID" />
       </div>
       <Button onClick={() => {
-        router.push({
-          pathname : "/chat",
-          query : {
-            username,
-            room,
+        if (!username || !room) {
+          alert("username & room can't empty")
+          return
+        }
+
+        let socket = io("http://localhost:8090/")
+
+        socket.emit('login', { name: username, room }, err => {
+          if (err) {
+            alert(err)
+            socket.disconnect()
+            return
+          } else {
+            setSocket(socket)
+            router.push({
+              pathname : "/chat",
+              query : {
+                username,
+                room
+              }
+            })
           }
         })
+
       }}>
         JOIN
       </Button>

@@ -1,10 +1,12 @@
-import { useContext, useEffect } from 'react'
-import Link from 'next/link'
+import { useContext, useState, useEffect, memo } from 'react'
+import { useRouter } from 'next/router'
+
+
 import Layout from "../components/Layout"
 import Input from "../components/Input"
 import { AppContext } from "../context/AppContext"
 
-const ChatContainer = ({ from, children }) => {
+const ChatContainer = ({ from, children, username }) => {
   let style = null
   let triangleStyle = null
   if (from === "me") {
@@ -44,7 +46,7 @@ const ChatContainer = ({ from, children }) => {
   }
 
   return <>
-    {from !== "me" && <div style={{ fontSize: 14 }}>username</div>}
+    {from !== "me" && <div style={{ fontSize: 14 }}>{username}</div>}
     <div style={style}>
       {children}
     </div>
@@ -55,14 +57,61 @@ const ChatContainer = ({ from, children }) => {
   </>
 }
 
+const ChatList = memo(function chatList({ chats }){
+  const router = useRouter()
+  return <>
+    {chats.map((val, idx) => {
+      return <ChatContainer username={val.username} from={val.username === router.query.username ? "me" : "other"} key={idx}>{val.message}</ChatContainer>
+    })}
+  </>
+})
+
 const Chat = () => {
-  let {axios} = useContext(AppContext)
+  const router = useRouter()
+  const [message, setMessage] = useState("");
+  const [chatData, setChatData] = useState({
+    data: [],
+    page: 1,
+  });
+
+  let { socket, axios } = useContext(AppContext)
+
+
+  function getChatData(reset = false) {
+    if (reset) {
+      chatData.data = []
+      chatData.page = 1
+    }
+    axios.get("/chat", {
+      params: {
+        page: chatData.page,
+        room: router.query.room
+      }
+    })
+      .then(res => {
+        for (let i = (res.data.data.length - 1); i >= 0; i--) {
+          chatData.data.push(res.data.data[i])
+        }
+        setChatData({
+          ...chatData
+        })
+      })
+  }
 
   useEffect(() => {
-    axios.get("/").then(res => {
-      console.log("res",res)
-    })
+    getChatData(true)
   }, [axios])
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("message", data => {
+        chatData.data.push(data)
+        setChatData({
+          ...chatData
+        })
+      })
+    }
+  }, [socket])
 
   return <Layout>
     <div
@@ -83,10 +132,11 @@ const Chat = () => {
           flexDirection: "column"
         }}
       >
-        <Link href="/">
-          <span style={{ color: "#5DB075", cursor: "pointer" }} >Exit</span>
-        </Link>
-        <div style={{ alignSelf: "center", position: "absolute" }}>ROOMID</div>
+        <span onClick={() => {
+          if (socket) socket.disconnect()
+          router.push("/")
+        }} style={{ color: "#5DB075", cursor: "pointer" }} >Exit</span>
+        <div style={{ alignSelf: "center", position: "absolute" }}>{router.query.room}</div>
       </div>
       <div
         style={{
@@ -97,12 +147,9 @@ const Chat = () => {
           overflow: "auto"
         }}
       >
-        <ChatContainer>Lorem Ipsum Dolor sit amet uahuahuahua, Lorem Ipsum Dolor sit amet uahuahuahua , Lorem Ipsum Dolor sit amet uahuahuahua ,Lorem Ipsum Dolor sit amet uahuahuahua Lorem Ipsum Dolor sit amet uahuahuahua</ChatContainer>
-        <ChatContainer from="me">Lorem Ipsum Dolor sit amet uahuahuahua, Lorem Ipsum Dolor sit amet uahuahuahua , Lorem Ipsum Dolor sit amet uahuahuahua ,Lorem Ipsum Dolor sit amet uahuahuahua Lorem Ipsum Dolor sit amet uahuahuahua</ChatContainer>
-        <ChatContainer from="me">Hai</ChatContainer>
-        <ChatContainer>Hai</ChatContainer>
+        <ChatList chats={chatData.data}/>
       </div>
-      <Input style={{ marginBottom: "10px", display: "flex" }} placeholder="Message here..." >
+      <Input value={message} onInput={e => setMessage(e.target.value)} style={{ marginBottom: "10px", display: "flex" }} placeholder="Message here..." >
         <div
           style={{
             color: "white",
@@ -113,7 +160,23 @@ const Chat = () => {
             fontSize: 18,
             display: "flex",
             alignItems: "center",
-            justifyContent: "center"
+            justifyContent: "center",
+            cursor: "pointer"
+          }}
+          onClick={() => {
+            if (socket) {
+              socket.emit("sendMessage", message, err => {
+                console.log("error", err)
+                if (err) {
+                  alert(err)
+                } else {
+                  setMessage("")
+                }
+              })
+            } else {
+              alert("connection error")
+              router.push("/")
+            }
           }}
         >
           &#8593;
