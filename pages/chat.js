@@ -131,9 +131,6 @@ const Chat = () => {
       style={{
         width: "100%",
         height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
         padding: "10px 0px",
       }}
     >
