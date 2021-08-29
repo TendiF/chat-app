@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect, memo } from 'react'
+import { useContext, useState, useEffect, memo, createRef, forwardRef } from 'react'
 import { useRouter } from 'next/router'
 
 
@@ -6,7 +6,7 @@ import Layout from "../components/Layout"
 import Input from "../components/Input"
 import { AppContext } from "../context/AppContext"
 
-const ChatContainer = ({ from, children, username }) => {
+const ChatContainer = forwardRef(function ChatContainerRef({ from, children, username }, ref) {
   let style = null
   let triangleStyle = null
   if (from === "me") {
@@ -42,12 +42,11 @@ const ChatContainer = ({ from, children, username }) => {
       marginTop: -8,
       marginBottom: 12
     }
-
   }
 
   return <>
     {from !== "me" && <div style={{ fontSize: 14 }}>{username}</div>}
-    <div style={style}>
+    <div ref={ref} style={style}>
       {children}
     </div>
     <div
@@ -55,16 +54,30 @@ const ChatContainer = ({ from, children, username }) => {
     >
     </div>
   </>
-}
-
-const ChatList = memo(function chatList({ chats }){
-  const router = useRouter()
-  return <>
-    {chats.map((val, idx) => {
-      return <ChatContainer username={val.username} from={val.username === router.query.username ? "me" : "other"} key={idx}>{val.message}</ChatContainer>
-    })}
-  </>
 })
+
+const ChatListMemo = memo(function ChatList({ chats }) {
+  const router = useRouter()
+  let chatContainer = createRef()
+  useEffect(() => {
+    if(chatContainer.current){
+      chatContainer.current?.scrollIntoView({ behavior: "smooth" })
+    }
+  })
+  return <div
+    style={{
+      width: "100%",
+      height: "88%",
+      display: "flex",
+      flexDirection: "column",
+      overflow: "auto"
+    }}
+  >
+    {chats.map((val, idx) => {
+      return <ChatContainer ref={chatContainer} username={val.username} from={val.username === router.query.username ? "me" : "other"} key={idx}>{val.message}</ChatContainer>
+    })}
+  </div>
+}, () => { })
 
 const Chat = () => {
   const router = useRouter()
@@ -138,17 +151,7 @@ const Chat = () => {
         }} style={{ color: "#5DB075", cursor: "pointer" }} >Exit</span>
         <div style={{ alignSelf: "center", position: "absolute" }}>{router.query.room}</div>
       </div>
-      <div
-        style={{
-          width: "100%",
-          height: "88%",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "auto"
-        }}
-      >
-        <ChatList chats={chatData.data}/>
-      </div>
+      <ChatListMemo chats={chatData.data} />
       <Input value={message} onInput={e => setMessage(e.target.value)} style={{ marginBottom: "10px", display: "flex" }} placeholder="Message here..." >
         <div
           style={{
