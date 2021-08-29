@@ -152,7 +152,16 @@ const Chat = () => {
         <div style={{ alignSelf: "center", position: "absolute" }}>{router.query.room}</div>
       </div>
       <ChatListMemo chats={chatData.data} />
-      <Input value={message} onInput={e => setMessage(e.target.value)} style={{ marginBottom: "10px", display: "flex" }} placeholder="Message here..." >
+    </div>
+    <div
+      style={{
+        position: "fixed",
+        bottom: 0,
+        width: "100%",
+        padding: 10
+      }}
+    >
+      <Input value={message} onInput={e => setMessage(e.target.value)} style={{ marginBottom: "10px", display: "flex", width: "100%" }} placeholder="Message here..." >
         <div
           style={{
             color: "white",
