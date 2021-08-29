@@ -23,7 +23,7 @@ const Index = () => {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        height: "100%",
+        height: "90%",
         justifyContent: "space-between",
         padding: "20px 0px"
       }}
