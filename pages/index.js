@@ -46,7 +46,7 @@ const Index = () => {
           return
         }
 
-        let socket = io("http://localhost:8090/")
+        let socket = io(process.env.NEXT_PUBLIC_URL_API)
 
         socket.emit('login', { name: username, room }, err => {
           if (err) {

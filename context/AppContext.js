@@ -4,7 +4,7 @@ import axios from 'axios'
 const AppContext = React.createContext()
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8090/',
+  baseURL: process.env.NEXT_PUBLIC_URL_API,
   timeout: 1000,
 });
 
