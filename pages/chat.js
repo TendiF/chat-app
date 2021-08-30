@@ -56,15 +56,18 @@ const ChatContainer = forwardRef(function ChatContainerRef({ from, children, use
   </>
 })
 
-const ChatListMemo = memo(function ChatList({ chats }) {
+const ChatListMemo = memo(function ChatList({ chats, onScroll }) {
   const router = useRouter()
-  let chatContainer = createRef()
+  let chatRef = createRef()
+  let ChatContainerRef = createRef()
   useEffect(() => {
-    if(chatContainer.current){
-      chatContainer.current?.scrollIntoView({ behavior: "smooth" })
+    ChatContainerRef.current.addEventListener("scroll", e => onScroll(e, ChatContainerRef.current))
+    if(chatRef.current){
+      chatRef.current?.scrollIntoView({ behavior: "smooth" })
     }
   })
   return <div
+    ref={ChatContainerRef}
     style={{
       width: "100%",
       height: "88%",
@@ -74,7 +77,7 @@ const ChatListMemo = memo(function ChatList({ chats }) {
     }}
   >
     {chats.map((val, idx) => {
-      return <ChatContainer ref={chatContainer} username={val.username} from={val.username === router.query.username ? "me" : "other"} key={idx}>{val.message}</ChatContainer>
+      return <ChatContainer ref={chatRef} username={val.username} from={val.username === router.query.username ? "me" : "other"} key={idx}>{val.message}</ChatContainer>
     })}
   </div>
 }, () => { })
@@ -85,6 +88,7 @@ const Chat = () => {
   const [chatData, setChatData] = useState({
     data: [],
     page: 1,
+    total_page : 1,
   });
 
   let { socket, axios } = useContext(AppContext)
@@ -102,9 +106,11 @@ const Chat = () => {
       }
     })
       .then(res => {
-        for (let i = (res.data.data.length - 1); i >= 0; i--) {
-          chatData.data.push(res.data.data[i])
+        for (let i = 0; i < res.data.data.length; i++) {
+          console.log(i)
+          chatData.data.unshift(res.data.data[i])
         }
+        chatData.total_page = res.data.total_page
         setChatData({
           ...chatData
         })
@@ -112,8 +118,10 @@ const Chat = () => {
   }
 
   useEffect(() => {
-    getChatData(true)
-  }, [axios])
+    if(router?.query?.room){
+      getChatData(true)
+    }
+  }, [axios, router])
 
   useEffect(() => {
     if (socket) {
@@ -148,7 +156,15 @@ const Chat = () => {
         }} style={{ color: "#5DB075", cursor: "pointer" }} >Exit</span>
         <div style={{ alignSelf: "center", position: "absolute" }}>{router.query.room}</div>
       </div>
-      <ChatListMemo chats={chatData.data} />
+      <ChatListMemo chats={chatData.data} onScroll={(e,el) => {
+          if(el && el?.scrollTop === 0 && chatData.page < chatData.total_page){
+            chatData.page += 1
+            setChatData({
+              ...chatData
+            })
+            getChatData()
+          }
+      }} />
     </div>
     <div
       style={{
